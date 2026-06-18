@@ -1,0 +1,60 @@
+{
+  "name": "speclet-vscode",
+  "displayName": "speclet",
+  "description": "Spec-driven development — use @speclet in GitHub Copilot Chat",
+  "version": "0.1.0",
+  "publisher": "speclet",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": ["AI", "Other"],
+  "keywords": ["copilot", "chat", "spec", "tasks", "ai"],
+  "activationEvents": [],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "chatParticipants": [
+      {
+        "id": "speclet.agent",
+        "name": "speclet",
+        "fullName": "speclet",
+        "description": "Spec-driven development — generate tasks, implement phases, clarify plans, and more",
+        "isSticky": true,
+        "commands": [
+          {
+            "name": "tasks",
+            "description": "Generate tasks for one or all phases. Optionally pass a phase: /tasks 1"
+          },
+          {
+            "name": "implement",
+            "description": "Implement a phase. Pass phase number or name: /implement 1"
+          },
+          {
+            "name": "clarify",
+            "description": "Generate clarifying questions about the plan or a specific phase: /clarify 2"
+          },
+          {
+            "name": "analyze",
+            "description": "Analyze tasks for gaps, conflicts, and risks: /analyze or /analyze 1"
+          },
+          {
+            "name": "constitution",
+            "description": "Fill in or update the project constitution"
+          }
+        ]
+      }
+    ]
+  },
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -watch",
+    "package": "vsce package --no-dependencies",
+    "install-ext": "vsce package --no-dependencies && code --install-extension speclet-vscode-0.1.0.vsix"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.90.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.4.0",
+    "@vscode/vsce": "^3.0.0"
+  }
+}
+

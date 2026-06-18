@@ -1,0 +1,26 @@
+# Source
+src/
+
+# TypeScript config
+tsconfig.json
+
+# VS Code extension (separate package)
+vscode-extension/
+
+# Reference files
+speckit_generated_files_for_reference/
+
+# Docs (not needed in the installed package)
+PUBLISHING.md
+CHANGELOG.md
+
+# Dev / CI
+.github/
+.idea/
+.vscode/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+

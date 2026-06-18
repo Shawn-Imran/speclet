@@ -1,0 +1,56 @@
+{
+  "name": "speclet",
+  "version": "0.3.0",
+  "description": "Spec-driven development CLI — native slash commands for Copilot Chat, Claude Code, Cursor, Mistral Vibe, and Command Code",
+  "keywords": [
+    "cli",
+    "ai",
+    "copilot",
+    "claude",
+    "cursor",
+    "vibe",
+    "commandcode",
+    "spec",
+    "tasks",
+    "developer-tools"
+  ],
+  "author": "Md Al Mahmud Imran <md.almahmudimran@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Shawn-Imran/speclet.git"
+  },
+  "homepage": "https://github.com/Shawn-Imran/speclet#readme",
+  "bugs": {
+    "url": "https://github.com/Shawn-Imran/speclet/issues"
+  },
+  "main": "dist/cli.js",
+  "bin": {
+    "speclet": "dist/cli.js"
+  },
+  "files": [
+    "dist/",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "ts-node src/cli.ts",
+    "start": "node dist/cli.js",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "commander": "^12.0.0",
+    "chalk": "^5.3.0",
+    "ora": "^8.0.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "@types/node": "^20.0.0",
+    "ts-node": "^10.9.0"
+  },
+  "type": "module"
+}
