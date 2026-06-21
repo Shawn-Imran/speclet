@@ -8,6 +8,27 @@ All notable changes to speclet are documented here.
 
 ---
 
+## 0.3.1 — 2026-06-21
+
+### Added
+- **`/speclet-plan` slash command** — planning is now an AI agent command, scaffolded by `speclet init` for all four agents: Claude Code (`/project:speclet-plan`), Copilot Chat (`/speclet.plan`, with handoffs to clarify/tasks), Mistral Vibe (`/speclet-plan`), and Command Code (`/speclet-plan`). The agent acts as a **system architect / lead engineer**: for every decision (architecture, tech choices, phase boundaries, ordering, scope) it proposes 2–4 options with trade-offs and a recommendation, asks the developer to choose or offer their own, asks one question at a time, and never decides unilaterally.
+- **`plan.md` prompt template** — scaffolded by `speclet init` into `.speclet/prompts/plan.md`; drives the architect-style interview and writes phased plan files straight into `.speclet/plans/`.
+
+### Changed
+- Each agent now scaffolds **8 commands** (was 7) — `plan` added to the Claude, Copilot, Vibe, and Command Code command/skill/agent maps, and to the Cursor rules prompt list and Vibe `AGENTS.md` command list.
+- `speclet init` "next steps" and placeholder output now point users to the `/speclet-plan` slash command instead of a terminal command.
+
+### Removed
+- **`speclet plan` CLI command** — removed along with `src/commands/plan.ts` and its `cli.ts` registration. Planning was never meant to be a terminal command; it now exists **only** as the `/speclet-plan` agent command. Because the agent writes plan files directly into `.speclet/plans/`, the agent path skips the `speclet init ./plans` copy step (`speclet init` → `/speclet-plan` → `/speclet-tasks`).
+
+### Documentation
+- Reworked the "How it works" workflow diagram to show both new-project paths: agent-written (`speclet init` → `/speclet-plan` → `/speclet-tasks`) and hand-written (`write plans/*.md` → `speclet init ./plans` → `/speclet-tasks`)
+- Replaced the `speclet plan` CLI reference subsection with a "Not a CLI command" note redirecting to `/speclet-plan`, and removed its Table of Contents entry
+- Added `/speclet-plan` rows to all four agent command tables (Copilot, Claude Code, Vibe, Command Code)
+- Updated Step 1 ("Write your plan") to describe the architect-style `/speclet-plan` flow and removed the old `speclet plan` terminal examples
+
+---
+
 ## 0.3.0 — 2026-06-16
 
 ### Added

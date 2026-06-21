@@ -22,8 +22,6 @@ program
   .description("Minimal spec-driven development CLI")
   .version(version);
 
-import { planCommand } from "./commands/plan.js";
-
 program
   .command("init")
   .description("Initialize speclet in a project")
@@ -35,12 +33,6 @@ program
   .command("map")
   .description("Scan an existing codebase and generate context.md + architecture.md")
   .action(mapCommand);
-
-program
-  .command("plan")
-  .description("Create feature plan files interactively via your AI agent")
-  .option("--path <path>", "Output directory for plan files", "plans")
-  .action(planCommand);
 
 program
   .command("constitution")

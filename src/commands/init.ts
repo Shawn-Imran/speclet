@@ -43,7 +43,7 @@ export async function initCommand(planPath: string | undefined, opts: { agent: s
     }
   } else {
     console.log(chalk.dim(`No plan path given — scaffolding .speclet/ templates only.`));
-    console.log(chalk.dim(`Run "speclet plan" to create plan files, or "speclet map" for existing projects.\n`));
+    console.log(chalk.dim(`Use /speclet-plan in your AI agent to create plan files, or "speclet map" for existing projects.\n`));
   }
 
   // --- Create .speclet dir ---
@@ -120,7 +120,7 @@ export async function initCommand(planPath: string | undefined, opts: { agent: s
     // Write a placeholder index so the directory is not empty
     if (!fs.existsSync(specletPath("tasks", "index.md"))) {
       writeSpecletFile(
-        `# Task Index\n\n> Run "speclet plan" to create plan files or "speclet map" for existing projects. No phases registered yet.\n`,
+        `# Task Index\n\n> Use /speclet-plan in your AI agent to create plan files or "speclet map" for existing projects. No phases registered yet.\n`,
         "tasks", "index.md"
       );
       console.log(chalk.dim(`  Created placeholder .speclet/tasks/index.md`));
@@ -128,6 +128,7 @@ export async function initCommand(planPath: string | undefined, opts: { agent: s
   }
 
   // --- Write prompt templates ---
+  writeSpecletFile(planPrompt(), "prompts", "plan.md");
   writeSpecletFile(clarifyPrompt(), "prompts", "clarify.md");
   writeSpecletFile(analyzePrompt(), "prompts", "analyze.md");
   writeSpecletFile(tasksPrompt(), "prompts", "tasks.md");
@@ -149,7 +150,7 @@ export async function initCommand(planPath: string | undefined, opts: { agent: s
         `  3. Run ${chalk.cyan("speclet tasks")} (or use ${chalk.cyan("/speclet-tasks")} in your agent) to generate tasks\n` +
         `  4. Run ${chalk.cyan("speclet implement <phase>")} (or use ${chalk.cyan("/speclet-implement <phase>")}) to start building\n`
       : `\n${chalk.dim("Next steps:")}\n` +
-        `  1. Run ${chalk.cyan("speclet plan")} to create plan files interactively\n` +
+        `  1. Use ${chalk.cyan("/speclet-plan")} in your AI agent to create plan files interactively\n` +
         `  2. Run ${chalk.cyan("speclet map")} if you have an existing codebase to scan\n` +
         `  3. Edit ${chalk.cyan(".speclet/context.md")} with your stack & conventions\n` +
         `  4. Run ${chalk.cyan("speclet init ./plans")} once you have plan files ready\n`
@@ -172,6 +173,22 @@ function scaffoldSingleAgent(agent: string) {
     fs.mkdirSync(commandsDir, { recursive: true });
 
     const commands: Record<string, string> = {
+      "speclet-plan.md": claudeCmd(
+        "plan",
+        `Act as a senior system architect / lead engineer and help the developer turn an idea into a phased plan, written to \`.speclet/plans/\`.
+
+Topic (optional): $ARGUMENTS
+
+Core behaviour:
+- **Propose, do not decide.** For every meaningful decision (architecture, tech choices, phase boundaries, ordering, scope) present 2–4 concrete options with trade-offs, recommend the one you'd pick and why — but the developer makes the final call.
+- **Always ask, never assume.** When anything is unclear or could go more than one way, ask. Invite the developer's own ideas: "pick one, or tell me your own approach."
+- **One question at a time** — wait for each answer before continuing.
+
+1. Read \`.speclet/context.md\` and \`.speclet/constitution.md\` (if present and filled in). If \`.speclet/architecture.md\` or existing \`.speclet/plans/\` files exist, read them too.
+2. Interview the developer through: scope → architecture approach → phase breakdown → dependencies/ordering → file structure.
+3. Once decisions are confirmed, write the plan file(s) to \`.speclet/plans/\` — one \`##\` heading per phase (no tasks yet).
+4. Follow the instructions in \`.speclet/prompts/plan.md\` step by step. Suggest \`/speclet-tasks\` as the next step.`
+      ),
       "speclet-map.md": claudeCmd(
         "map",
         `Perform a full retroactive speclet setup of an existing codebase.
@@ -266,8 +283,8 @@ Phase (required): $ARGUMENTS
     for (const [file, content] of Object.entries(commands)) {
       fs.writeFileSync(path.join(commandsDir, file), content, "utf-8");
     }
-    console.log(chalk.green(`✔ Created .claude/commands/ — 7 slash commands`) +
-      chalk.dim(` (/project:speclet-map, /project:speclet-tasks, /project:speclet-implement <phase>, /project:speclet-learn, ...)`));
+    console.log(chalk.green(`✔ Created .claude/commands/ — 8 slash commands`) +
+      chalk.dim(` (/project:speclet-plan, /project:speclet-map, /project:speclet-tasks, /project:speclet-implement <phase>, /project:speclet-learn, ...)`));
   }
 
   if (agent === "cursor") {
@@ -291,6 +308,7 @@ Phase (required): $ARGUMENTS
     // Skills — one directory per command, each with a SKILL.md file
     const skillsDir = path.join(vibeDir, "skills");
     const skills: Record<string, string> = {
+      "speclet-plan": vibeSkillPlan(),
       "speclet-map": vibeSkillMap(),
       "speclet-constitution": vibeSkillConstitution(),
       "speclet-clarify": vibeSkillClarify(),
@@ -306,8 +324,8 @@ Phase (required): $ARGUMENTS
     }
 
     console.log(chalk.green(`✔ Updated .vibe/AGENTS.md`));
-    console.log(chalk.green(`✔ Created .vibe/skills/ — 7 skill files`) +
-      chalk.dim(` (/speclet-map, /speclet-tasks, /speclet-implement, /speclet-clarify, /speclet-analyze, /speclet-constitution, /speclet-learn)`));
+    console.log(chalk.green(`✔ Created .vibe/skills/ — 8 skill files`) +
+      chalk.dim(` (/speclet-plan, /speclet-map, /speclet-tasks, /speclet-implement, /speclet-clarify, /speclet-analyze, /speclet-constitution, /speclet-learn)`));
   }
 
   if (agent === "copilot") {
@@ -326,6 +344,7 @@ Phase (required): $ARGUMENTS
     fs.mkdirSync(agentsDir, { recursive: true });
 
     const agentFiles: Record<string, string> = {
+      "speclet.plan.agent.md": specletPlanAgent(),
       "speclet.map.agent.md": specletMapAgent(),
       "speclet.constitution.agent.md": specletConstitutionAgent(),
       "speclet.tasks.agent.md": specletTasksAgent(),
@@ -342,7 +361,7 @@ Phase (required): $ARGUMENTS
     const promptsDir = path.join(ghDir, "prompts");
     fs.mkdirSync(promptsDir, { recursive: true });
 
-    for (const name of ["constitution", "tasks", "implement", "clarify", "analyze", "learn"]) {
+    for (const name of ["plan", "constitution", "tasks", "implement", "clarify", "analyze", "learn"]) {
       fs.writeFileSync(
         path.join(promptsDir, `speclet.${name}.prompt.md`),
         `---\nagent: speclet.${name}\n---\n`,
@@ -357,15 +376,16 @@ Phase (required): $ARGUMENTS
     );
 
     console.log(chalk.green(`✔ Updated .github/copilot-instructions.md`));
-    console.log(chalk.green(`✔ Created .github/agents/ — 7 agent files`) +
+    console.log(chalk.green(`✔ Created .github/agents/ — 8 agent files`) +
       chalk.dim(` (appear in Copilot Chat agent dropdown)`));
-    console.log(chalk.green(`✔ Created .github/prompts/ — 7 prompt files`) +
-      chalk.dim(` (/speclet.map, /speclet.tasks, /speclet.implement, /speclet.clarify, /speclet.analyze, /speclet.constitution, /speclet.learn)`));
+    console.log(chalk.green(`✔ Created .github/prompts/ — 8 prompt files`) +
+      chalk.dim(` (/speclet.plan, /speclet.map, /speclet.tasks, /speclet.implement, /speclet.clarify, /speclet.analyze, /speclet.constitution, /speclet.learn)`));
   }
 
   if (agent === "commandcode") {
     const ccSkillsDir = path.join(cwd, ".commandcode", "skills");
     const skills: Record<string, string> = {
+      "speclet-plan": ccSkillPlan(),
       "speclet-map": ccSkillMap(),
       "speclet-constitution": ccSkillConstitution(),
       "speclet-clarify": ccSkillClarify(),
@@ -379,8 +399,8 @@ Phase (required): $ARGUMENTS
       fs.mkdirSync(skillDir, { recursive: true });
       fs.writeFileSync(path.join(skillDir, "SKILL.md"), content, "utf-8");
     }
-    console.log(chalk.green(`✔ Created .commandcode/skills/ — 7 skill files`) +
-      chalk.dim(` (/speclet-map, /speclet-tasks, /speclet-implement, /speclet-clarify, /speclet-analyze, /speclet-constitution, /speclet-learn)`));
+    console.log(chalk.green(`✔ Created .commandcode/skills/ — 8 skill files`) +
+      chalk.dim(` (/speclet-plan, /speclet-map, /speclet-tasks, /speclet-implement, /speclet-clarify, /speclet-analyze, /speclet-constitution, /speclet-learn)`));
   }
 }
 
@@ -478,6 +498,94 @@ You are reviewing auto-captured rules from recent implementation sessions and de
 `;
 }
 
+
+function planPrompt(): string {
+  return `# Plan Prompt
+
+You are acting as a **senior system architect and lead engineer** helping the developer
+turn an idea into a concrete plan **before** any code is written. The output is one or
+more markdown plan files in \`.speclet/plans/\`, each broken into phases using \`##\` headings.
+
+## How you must behave
+
+- **Propose, do not decide.** You are an advisor, not the decision-maker. For every
+  meaningful decision (architecture, tech choice, phase boundaries, ordering, scope),
+  present **2–4 concrete options** with honest trade-offs, then **recommend** the one you
+  would pick as a lead engineer and say *why* — but the developer makes the final call.
+- **Always ask, never assume.** When anything is unclear, missing, or could go more than
+  one way, ask the developer instead of guessing. Invite their own ideas every time:
+  "Pick one of these, or tell me if you have a different approach in mind."
+- **One question at a time.** Ask a single question, wait for the answer, then continue.
+  Do not dump a long questionnaire.
+- **Think like an architect.** Surface risks, hidden complexity, dependencies, and
+  sequencing concerns the developer may not have considered — framed as suggestions to
+  confirm, not as final rulings.
+
+## Before you start
+
+1. Read \`.speclet/context.md\` (stack, conventions, constraints).
+2. Read \`.speclet/constitution.md\` if present and filled in (no \`<!-- speclet:unfilled -->\` marker) — respect its ground rules in everything you propose.
+3. If \`.speclet/architecture.md\` exists, read it to understand existing modules and boundaries.
+4. If \`.speclet/plans/\` already has plan files, read them so you extend rather than duplicate.
+
+## Interview flow (one question at a time, with options + a recommendation)
+
+### 1 — Scope
+- **What are you building?** Get a one-line description of the feature/project.
+- Reflect it back and confirm what is explicitly **in** and **out** of scope.
+
+### 2 — Architecture approach
+- Propose 2–4 candidate approaches (e.g. patterns, data flow, where the work lives),
+  each with trade-offs, and recommend one. Ask the developer to choose or propose their own.
+
+### 3 — Phase breakdown
+- **What does "done" look like?** The end state when the feature is fully built.
+- Suggest a phase breakdown (the logical increments from nothing → done). Recommend
+  3–8 phases. For each phase propose a **name** and **key deliverables** (2–4 sentences).
+- Ask the developer to confirm, adjust, merge, or split phases. Do NOT generate tasks here —
+  tasks come later via \`/speclet-tasks\`.
+
+### 4 — Dependencies & ordering
+- Point out which phases depend on others and recommend a build order.
+- Flag any phase that could be optional or deferred. Confirm with the developer.
+
+### 5 — File structure
+- Recommend where new code should live (e.g. \`src/features/x/\`) and which existing
+  modules likely need changes. Confirm with the developer.
+
+## Output
+
+After the developer has confirmed the decisions, write the plan file(s) to \`.speclet/plans/\`:
+
+\`\`\`markdown
+# <Feature Name>
+
+> Plan created interactively via /speclet-plan.
+
+## Phase 1: <Name>
+<2–4 sentence description of what gets built in this phase>
+
+## Phase 2: <Name>
+<Description>
+
+...
+\`\`\`
+
+### File naming
+- Numbered prefixes for ordering: \`01-backend.md\`, \`02-frontend.md\`, or a single \`01-<feature-slug>.md\`.
+- Lowercase, hyphens for spaces.
+
+### Rules
+- Each phase = one \`##\` heading with a descriptive name.
+- 2–4 sentence description per phase — enough to scope it, not a full spec.
+- Phases must be ordered. Keep descriptions high-level — tasks are generated later.
+- Only write the files once the developer has signed off on the decisions.
+
+## After writing
+- List the files created and confirm the phase count.
+- Suggest the next step: \`/speclet-tasks\` to break the phases into concrete tasks.
+`;
+}
 
 function constitutionPrompt(): string {
   return `# Constitution Prompt
@@ -692,6 +800,77 @@ function claudeCmd(name: string, instructions: string): string {
 }
 
 // ─── Copilot agent files ───────────────────────────────────────────────────────
+
+function specletPlanAgent(): string {
+  return `---
+description: Act as a senior system architect / lead engineer and help the developer turn an idea into a phased plan — proposing options with trade-offs and letting the developer decide.
+handoffs:
+  - label: Clarify the Plan
+    agent: speclet.clarify
+    prompt: Surface ambiguities and open questions in the plan we just created
+    send: true
+  - label: Generate Tasks
+    agent: speclet.tasks
+    prompt: Generate tasks for the phases we just planned
+    send: true
+---
+
+## User Input
+
+\`\`\`text
+$ARGUMENTS
+\`\`\`
+
+If \`$ARGUMENTS\` is non-empty, use it as the starting feature description.
+
+## Goal
+
+Act as a **senior system architect and lead engineer**. Help the developer turn an idea into
+one or more phased plan files in \`.speclet/plans/\` — **before** any code is written.
+
+## How you must behave
+
+- **Propose, do not decide.** For every meaningful decision (architecture, tech choices, phase
+  boundaries, ordering, scope) present **2–4 concrete options** with honest trade-offs, recommend
+  the one you'd pick as a lead engineer and say why — but the developer makes the final call.
+- **Always ask, never assume.** When anything is unclear or could go more than one way, ask.
+  Invite the developer's own ideas every time: "pick one of these, or tell me your own approach."
+- **One question at a time** — wait for the answer before continuing.
+- **Think like an architect** — surface risks, hidden complexity, dependencies, and sequencing
+  concerns as suggestions to confirm, not as final rulings.
+
+## Outline
+
+1. **Load context**:
+   - Read \`.speclet/context.md\` — stack, conventions, constraints
+   - If \`.speclet/constitution.md\` exists and does **NOT** contain \`<!-- speclet:unfilled -->\`, read it — respect its ground rules
+   - If \`.speclet/architecture.md\` or existing \`.speclet/plans/\` files exist, read them so you extend rather than duplicate
+
+2. **Interview** (one question at a time, each with options + a recommendation):
+   - **Scope** — what are you building? Confirm what is in/out of scope.
+   - **Architecture approach** — propose 2–4 candidate approaches with trade-offs; recommend one; ask them to choose or propose their own.
+   - **Phase breakdown** — what does "done" look like? Suggest 3–8 phases, each with a name and 2–4 sentence deliverables. Ask them to confirm/adjust/split/merge. Do NOT generate tasks here.
+   - **Dependencies & ordering** — recommend a build order; flag optional/deferrable phases; confirm.
+   - **File structure** — recommend where new code lives and which modules change; confirm.
+
+3. **Write the plan** once decisions are confirmed:
+   \`\`\`markdown
+   # <Feature Name>
+
+   > Plan created interactively via /speclet.plan.
+
+   ## Phase 1: <Name>
+   <2–4 sentence description>
+
+   ## Phase 2: <Name>
+   <Description>
+   \`\`\`
+   - File naming: \`01-<feature-slug>.md\` or numbered \`01-backend.md\`, \`02-frontend.md\` — lowercase, hyphens.
+   - Each phase = one \`##\` heading. Keep descriptions high-level — tasks come later.
+
+4. **Report**: List the files created, confirm the phase count, and suggest the "Generate Tasks" handoff.
+`;
+}
 
 function specletMapAgent(): string {
   return `---
@@ -1181,6 +1360,7 @@ When working on any speclet-related task:
 4. Load one phase file at a time from \`.speclet/tasks/\` — never all at once
 5. If \`.speclet/architecture.md\` exists, read it when implementing features that touch existing modules
 6. Follow the matching prompt in \`.speclet/prompts/\` for each command type:
+   - Plan: \`.speclet/prompts/plan.md\`
    - Map: \`.speclet/prompts/map.md\`
    - Constitution: \`.speclet/prompts/constitution.md\`
    - Clarify: \`.speclet/prompts/clarify.md\`
@@ -1218,7 +1398,7 @@ Key speclet files:
 - Task index: \`.speclet/tasks/index.md\` — the phase map, always use this to find phase files
 - Phase tasks: \`.speclet/tasks/phase-N-*.md\` — one file per phase, load only what you need
 
-Use the \`/speclet-constitution\`, \`/speclet-tasks\`, \`/speclet-implement\`, \`/speclet-clarify\`, and \`/speclet-analyze\` slash commands to run the speclet workflow.
+Use the \`/speclet-plan\`, \`/speclet-constitution\`, \`/speclet-tasks\`, \`/speclet-implement\`, \`/speclet-clarify\`, and \`/speclet-analyze\` slash commands to run the speclet workflow.
 <!-- SPECLET END -->
 `;
 }
@@ -1237,6 +1417,60 @@ allowed-tools:
 ${toolList}
 ---
 `;
+}
+
+function vibeSkillPlan(): string {
+  return (
+    vibeSkillFrontmatter(
+      "speclet-plan",
+      "Act as a senior system architect / lead engineer and help the developer turn an idea into a phased plan — proposing options with trade-offs and letting the developer decide.",
+      ["read", "write_file", "ask_user_question"]
+    ) +
+    `
+# speclet plan
+
+Act as a **senior system architect and lead engineer**. Help the developer turn an idea into one or more phased plan files in \`.speclet/plans/\` — **before** any code is written.
+
+## How you must behave
+
+- **Propose, do not decide.** For every meaningful decision (architecture, tech choices, phase boundaries, ordering, scope) present **2–4 concrete options** with trade-offs, recommend the one you'd pick as a lead engineer and say why — but the developer makes the final call.
+- **Always ask, never assume.** When anything is unclear or could go more than one way, ask. Invite the developer's own ideas: "pick one of these, or tell me your own approach."
+- **One question at a time** — wait for the answer before continuing.
+
+## Instructions
+
+If a topic was provided in the user's message, use it as the starting feature description.
+
+1. **Load context**:
+   - Read \`.speclet/context.md\` — stack, conventions, constraints
+   - If \`.speclet/constitution.md\` exists and does **NOT** contain \`<!-- speclet:unfilled -->\`, read it — respect its ground rules
+   - If \`.speclet/architecture.md\` or existing \`.speclet/plans/\` files exist, read them so you extend rather than duplicate
+
+2. **Interview** (one question at a time, each with options + a recommendation):
+   - **Scope** — what are you building? Confirm what is in/out of scope.
+   - **Architecture approach** — propose 2–4 candidate approaches with trade-offs; recommend one; ask them to choose or propose their own.
+   - **Phase breakdown** — what does "done" look like? Suggest 3–8 phases, each with a name and 2–4 sentence deliverables. Ask them to confirm/adjust/split/merge. Do NOT generate tasks here.
+   - **Dependencies & ordering** — recommend a build order; flag optional/deferrable phases; confirm.
+   - **File structure** — recommend where new code lives and which modules change; confirm.
+
+3. **Write the plan** once decisions are confirmed:
+   \`\`\`markdown
+   # <Feature Name>
+
+   > Plan created interactively via /speclet-plan.
+
+   ## Phase 1: <Name>
+   <2–4 sentence description>
+
+   ## Phase 2: <Name>
+   <Description>
+   \`\`\`
+   - File naming: \`01-<feature-slug>.md\` or numbered \`01-backend.md\`, \`02-frontend.md\` — lowercase, hyphens.
+   - Each phase = one \`##\` heading. Keep descriptions high-level — tasks come later.
+
+4. **Report**: List the files created, confirm the phase count, and suggest \`/speclet-tasks\` as the next step.
+`
+  );
 }
 
 function vibeSkillMap(): string {
@@ -1662,6 +1896,59 @@ name: ${name}
 description: ${description}
 ---
 `;
+}
+
+function ccSkillPlan(): string {
+  return (
+    ccSkillFrontmatter(
+      "speclet-plan",
+      "Act as a senior system architect / lead engineer and help the developer turn an idea into a phased plan — proposing options with trade-offs and letting the developer decide.",
+    ) +
+    `
+# speclet plan
+
+Act as a **senior system architect and lead engineer**. Help the developer turn an idea into one or more phased plan files in \`.speclet/plans/\` — **before** any code is written.
+
+## How you must behave
+
+- **Propose, do not decide.** For every meaningful decision (architecture, tech choices, phase boundaries, ordering, scope) present **2–4 concrete options** with trade-offs, recommend the one you'd pick as a lead engineer and say why — but the developer makes the final call.
+- **Always ask, never assume.** When anything is unclear or could go more than one way, ask. Invite the developer's own ideas: "pick one of these, or tell me your own approach."
+- **One question at a time** — wait for the answer before continuing.
+
+## Instructions
+
+If a topic was provided in the user's message, use it as the starting feature description.
+
+1. **Load context**:
+   - Read \`.speclet/context.md\` — stack, conventions, constraints
+   - If \`.speclet/constitution.md\` exists and does **NOT** contain \`<!-- speclet:unfilled -->\`, read it — respect its ground rules
+   - If \`.speclet/architecture.md\` or existing \`.speclet/plans/\` files exist, read them so you extend rather than duplicate
+
+2. **Interview** (one question at a time, each with options + a recommendation):
+   - **Scope** — what are you building? Confirm what is in/out of scope.
+   - **Architecture approach** — propose 2–4 candidate approaches with trade-offs; recommend one; ask them to choose or propose their own.
+   - **Phase breakdown** — what does "done" look like? Suggest 3–8 phases, each with a name and 2–4 sentence deliverables. Ask them to confirm/adjust/split/merge. Do NOT generate tasks here.
+   - **Dependencies & ordering** — recommend a build order; flag optional/deferrable phases; confirm.
+   - **File structure** — recommend where new code lives and which modules change; confirm.
+
+3. **Write the plan** once decisions are confirmed:
+   \`\`\`markdown
+   # <Feature Name>
+
+   > Plan created interactively via /speclet-plan.
+
+   ## Phase 1: <Name>
+   <2–4 sentence description>
+
+   ## Phase 2: <Name>
+   <Description>
+   \`\`\`
+   - File naming: \`01-<feature-slug>.md\` or numbered \`01-backend.md\`, \`02-frontend.md\` — lowercase, hyphens.
+   - Each phase = one \`##\` heading. Keep descriptions high-level — tasks come later.
+
+4. **Report**: List the files created, confirm the phase count, and suggest \`/speclet-tasks\` as the next step.
+`
+  );
 }
 
 function ccSkillMap(): string {

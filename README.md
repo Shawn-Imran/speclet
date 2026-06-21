@@ -29,7 +29,6 @@
 6. [CLI reference](#cli-reference)
    - [speclet init](#speclet-init)
    - [speclet map](#speclet-map)
-   - [speclet plan](#speclet-plan)
    - [speclet constitution](#speclet-constitution)
    - [speclet tasks](#speclet-tasks)
    - [speclet clarify](#speclet-clarify)
@@ -48,17 +47,16 @@
 speclet reads your plan files and `.speclet/` context, then assembles structured prompts for your AI agent. The agent reads only what it needs, does the work, and writes results back to your task files.
 
 ```
-new project:        speclet plan  →  plans/*.md  →  speclet init ./plans  →  .speclet/ + agent files
-                                                                                  ↓
-                                                                       /speclet.tasks
-                                                                                  ↓
-                                                                       agent generates tasks/phase-N-*.md
-                                                                                  ↓
-                                                                       /speclet.implement 1
+new project (agent writes the plan):
+    speclet init  →  /speclet-plan  →  .speclet/plans/*.md  →  /speclet-tasks  →  /speclet-implement 1
 
-existing project:   speclet map   →  context.md + architecture.md + constitution.md + plans/ + tasks/
-                                                ↓
-                                         review → plan new features → normal workflow above
+new project (you write the plan by hand):
+    write plans/*.md  →  speclet init ./plans  →  /speclet-tasks  →  /speclet-implement 1
+
+existing project:
+    speclet map   →  context.md + architecture.md + constitution.md + plans/ + tasks/
+                            ↓
+                     review → /speclet-plan new features → normal workflow above
 ```
 
 **speclet is the scaffolding and the prompt factory. The agent does the thinking and coding.**
@@ -126,14 +124,7 @@ Set up PostgreSQL with Prisma. Write migrations for user and session tables.
 > - Each phase should be one meaningful increment of work
 > - Keep descriptions high-level — your agent will break them into concrete tasks later
 
-**Don't want to write plans by hand?** Use `speclet plan` — your AI agent interviews you and writes the files:
-
-```bash
-speclet plan                # writes to plans/
-speclet plan --path .       # writes to current directory
-```
-
-Or use the slash command:
+**Don't want to write plans by hand?** Run `speclet init` first, then use the `/speclet-plan` slash command. Your AI agent acts as a system architect / lead engineer — it proposes options with trade-offs, asks you to decide, and writes the plan files straight into `.speclet/plans/` (so you can skip `speclet init ./plans` and go straight to `/speclet-tasks`):
 
 | Agent | Command |
 |---|---|
@@ -636,6 +627,7 @@ After `speclet init`, open Copilot Chat. The speclet agents appear in the **agen
 
 | Command | Description |
 |---|---|
+| `/speclet.plan` | Plan a new feature with an architect/lead-engineer agent — proposes options, you decide, writes phased plan files |
 | `/speclet.map` | Full retroactive speclet setup — scans codebase, generates context, architecture, constitution, plans, and completed tasks |
 | `/speclet.constitution` | Fill in or update the project constitution |
 | `/speclet.tasks` | Generate tasks for all phases |
@@ -667,6 +659,7 @@ After `speclet init`, type `/` in Claude Code to see all project commands:
 
 | Command | Description |
 |---|---|
+| `/project:speclet-plan` | Plan a new feature with an architect/lead-engineer agent — proposes options, you decide, writes phased plan files |
 | `/project:speclet-map` | Full retroactive speclet setup — scans codebase, generates context, architecture, constitution, plans, and completed tasks |
 | `/project:speclet-constitution` | Fill in or update the project constitution |
 | `/project:speclet-tasks` | Generate tasks for all phases |
@@ -705,6 +698,7 @@ Type `/` in Vibe to see all speclet commands:
 
 | Command | Description |
 |---|---|
+| `/speclet-plan` | Plan a new feature with an architect/lead-engineer agent — proposes options, you decide, writes phased plan files |
 | `/speclet-map` | Full retroactive speclet setup — scans codebase, generates context, architecture, constitution, plans, and completed tasks |
 | `/speclet-constitution` | Fill in or update the project constitution |
 | `/speclet-tasks` | Generate tasks for all phases |
@@ -732,6 +726,7 @@ Type `/` in Command Code to see all speclet commands:
 
 | Command | Description |
 |---|---|
+| `/speclet-plan` | Plan a new feature with an architect/lead-engineer agent — proposes options, you decide, writes phased plan files |
 | `/speclet-map` | Full retroactive speclet setup — scans codebase, generates context, architecture, constitution, plans, and completed tasks |
 | `/speclet-constitution` | Fill in or update the project constitution |
 | `/speclet-tasks` | Generate tasks for all phases |
@@ -802,10 +797,9 @@ speclet init ./plans
 # Single plan file, Claude Code only
 speclet init ./plans/01-backend.md --agent claude
 
-# No plans yet — scaffold templates only, then create plans later
+# No plans yet — scaffold templates only, then plan with your agent
 speclet init
-speclet plan                 # create plan files
-speclet init ./plans         # re-run once plans are ready
+# then run /speclet-plan in your AI agent — it writes straight to .speclet/plans/
 ```
 
 ---
@@ -852,38 +846,9 @@ speclet map
 
 ### speclet plan
 
-Print a prompt that guides your AI agent to interview you and write plan files.
-
-```
-speclet plan [options]
-```
-
-**Arguments:** none
-
-**Options:**
-
-| Flag | Default | Description |
-|---|---|---|
-| `--path <path>` | `plans` | Directory where the agent should write the plan files |
-
-**What it does:**
-
-1. Requires `.speclet/` to exist (run `speclet init` first if needed)
-2. Builds the standard preamble (injects `context.md` and `constitution.md` if present and filled in)
-3. Prints the preamble plus a detailed plan-writing prompt — paste it into your AI agent
-
-**Your agent will:**
-
-1. Read `.speclet/context.md` and any existing plan files to understand the project
-2. Ask you questions one at a time: what you're building, what done looks like, how to break it into phases, dependencies and ordering, and where new code should live
-3. Write numbered plan files (e.g., `01-feature.md`) to the specified output directory, with one `##` heading per phase and a 2–4 sentence description per phase
-
-**Example:**
-
-```bash
-speclet plan                   # agent writes to plans/
-speclet plan --path src/plans  # agent writes to src/plans/
-```
+> **Not a CLI command.** Planning is an **AI agent command only** — there is no `speclet plan` in the terminal. After `speclet init`, run `/speclet-plan` (Claude: `/project:speclet-plan`, Copilot: `/speclet.plan`) in your agent.
+>
+> The agent acts as a **system architect / lead engineer**: for each decision (architecture, tech choices, phase boundaries, ordering, scope) it proposes 2–4 options with trade-offs and a recommendation, then asks you to choose or offer your own — it never decides for you. It asks one question at a time and writes the phased plan files straight into `.speclet/plans/`, so you can go directly to `/speclet-tasks` afterward.
 
 ---
 
