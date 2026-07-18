@@ -1,7 +1,7 @@
 {
   "name": "speclet",
   "version": "0.3.1",
-  "description": "Spec-driven development CLI — native slash commands for Copilot Chat, Claude Code, Cursor, Mistral Vibe, and Command Code",
+  "description": "Spec-driven development CLI — native slash commands for Copilot Chat, Claude Code, Cursor, Mistral Vibe, Command Code, and Antigravity CLI",
   "keywords": [
     "cli",
     "ai",
@@ -10,6 +10,7 @@
     "cursor",
     "vibe",
     "commandcode",
+    "antigravity",
     "spec",
     "tasks",
     "developer-tools"

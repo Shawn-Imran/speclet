@@ -8,7 +8,7 @@ import {
   loadPlanFiles,
 } from "../utils.js";
 
-const AGENTS = ["all", "claude", "copilot", "cursor", "vibe", "commandcode"] as const;
+const AGENTS = ["all", "claude", "copilot", "cursor", "vibe", "commandcode", "antigravity"] as const;
 type Agent = (typeof AGENTS)[number];
 
 export async function initCommand(planPath: string | undefined, opts: { agent: string }) {
@@ -161,7 +161,7 @@ export async function initCommand(planPath: string | undefined, opts: { agent: s
 // ─── Agent scaffolding ────────────────────────────────────────────────────────
 
 function scaffoldAgent(agent: string) {
-  const targets = agent === "all" ? ["claude", "copilot", "cursor", "vibe", "commandcode"] : [agent];
+  const targets = agent === "all" ? ["claude", "copilot", "cursor", "vibe", "commandcode", "antigravity"] : [agent];
   for (const t of targets) scaffoldSingleAgent(t);
 }
 
@@ -400,6 +400,27 @@ Phase (required): $ARGUMENTS
       fs.writeFileSync(path.join(skillDir, "SKILL.md"), content, "utf-8");
     }
     console.log(chalk.green(`✔ Created .commandcode/skills/ — 8 skill files`) +
+      chalk.dim(` (/speclet-plan, /speclet-map, /speclet-tasks, /speclet-implement, /speclet-clarify, /speclet-analyze, /speclet-constitution, /speclet-learn)`));
+  }
+
+  if (agent === "antigravity") {
+    const agSkillsDir = path.join(cwd, ".agents", "skills");
+    const skills: Record<string, string> = {
+      "speclet-plan": ccSkillPlan(),
+      "speclet-map": ccSkillMap(),
+      "speclet-constitution": ccSkillConstitution(),
+      "speclet-clarify": ccSkillClarify(),
+      "speclet-analyze": ccSkillAnalyze(),
+      "speclet-tasks": ccSkillTasks(),
+      "speclet-implement": ccSkillImplement(),
+      "speclet-learn": ccSkillLearn(),
+    };
+    for (const [skillName, content] of Object.entries(skills)) {
+      const skillDir = path.join(agSkillsDir, skillName);
+      fs.mkdirSync(skillDir, { recursive: true });
+      fs.writeFileSync(path.join(skillDir, "SKILL.md"), content, "utf-8");
+    }
+    console.log(chalk.green(`✔ Created .agents/skills/ — 8 skill files`) +
       chalk.dim(` (/speclet-plan, /speclet-map, /speclet-tasks, /speclet-implement, /speclet-clarify, /speclet-analyze, /speclet-constitution, /speclet-learn)`));
   }
 }

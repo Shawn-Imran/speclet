@@ -26,7 +26,7 @@ program
   .command("init")
   .description("Initialize speclet in a project")
   .argument("[plan]", "Optional: Path to a plan .md file or a folder of .md files")
-  .option("-a, --agent <agent>", "AI agent: all (default), claude, copilot, cursor, vibe, commandcode", "all")
+  .option("-a, --agent <agent>", "AI agent: all (default), claude, copilot, cursor, vibe, commandcode, antigravity", "all")
   .action(initCommand);
 
 program
