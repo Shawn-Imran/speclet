@@ -26,6 +26,7 @@
    - [Cursor](#cursor)
    - [Mistral Vibe](#mistral-vibe)
    - [Command Code](#command-code)
+   - [Antigravity CLI](#antigravity-cli)
 6. [CLI reference](#cli-reference)
    - [speclet init](#speclet-init)
    - [speclet map](#speclet-map)
@@ -132,6 +133,7 @@ Set up PostgreSQL with Prisma. Write migrations for user and session tables.
 | Claude Code | `/project:speclet-plan` |
 | Mistral Vibe | `/speclet-plan` |
 | Command Code | `/speclet-plan` |
+| Antigravity CLI | `/speclet-plan` |
 
 ---
 
@@ -148,6 +150,7 @@ speclet init ./plans --agent claude     # Claude Code only
 speclet init ./plans --agent cursor     # Cursor only
 speclet init ./plans --agent vibe       # Mistral Vibe only
 speclet init ./plans --agent commandcode # Command Code only
+speclet init ./plans --agent antigravity # Antigravity CLI only
 
 speclet init                            # no plans yet — scaffold templates only
 ```
@@ -244,6 +247,23 @@ This creates the following in your project:
     │   └── SKILL.md
     └── speclet-learn/
         └── SKILL.md
+
+.agents/
+└── skills/             ← Antigravity CLI custom slash commands (/speclet-*)
+    ├── speclet-map/
+    │   └── SKILL.md
+    ├── speclet-constitution/
+    │   └── SKILL.md
+    ├── speclet-clarify/
+    │   └── SKILL.md
+    ├── speclet-analyze/
+    │   └── SKILL.md
+    ├── speclet-tasks/
+    │   └── SKILL.md
+    ├── speclet-implement/
+    │   └── SKILL.md
+    └── speclet-learn/
+        └── SKILL.md
 ```
 
 > Task files (`.speclet/tasks/phase-N-*.md`) are **not** created here. Your agent creates them in Step 7.
@@ -298,6 +318,11 @@ The constitution defines non-negotiable principles for the project — architect
 ```
 
 **In Command Code:**
+```
+/speclet-constitution
+```
+
+**In Antigravity CLI:**
 ```
 /speclet-constitution
 ```
@@ -362,6 +387,12 @@ Before generating tasks, have your agent ask clarifying questions to surface amb
 /speclet-clarify 2         ← phase 2 only
 ```
 
+**In Antigravity CLI:**
+```
+/speclet-clarify           ← full plan
+/speclet-clarify 2         ← phase 2 only
+```
+
 **CLI:**
 ```bash
 speclet clarify              # full plan
@@ -394,6 +425,12 @@ Have your agent break each phase into concrete, ordered tasks and write them to 
 ```
 
 **In Command Code:**
+```
+/speclet-tasks             ← all phases
+/speclet-tasks 1           ← phase 1 only
+```
+
+**In Antigravity CLI:**
 ```
 /speclet-tasks             ← all phases
 /speclet-tasks 1           ← phase 1 only
@@ -451,6 +488,13 @@ Before implementing, have your agent check all generated tasks for gaps, conflic
 /speclet-analyze "fix the found issues"  ← analyze, then fix
 ```
 
+**In Antigravity CLI:**
+```
+/speclet-analyze                         ← all phases
+/speclet-analyze 1                       ← phase 1 only
+/speclet-analyze "fix the found issues"  ← analyze, then fix
+```
+
 **CLI:**
 ```bash
 speclet analyze --phase 1
@@ -501,6 +545,12 @@ Have your agent work through a phase's tasks one by one, marking each `[x]` when
 /speclet-implement "Phase 2: API"
 ```
 
+**In Antigravity CLI:**
+```
+/speclet-implement 1
+/speclet-implement "Phase 2: API"
+```
+
 **CLI:**
 ```bash
 speclet implement 1
@@ -544,6 +594,7 @@ Or use the slash command:
 | Claude Code | `/project:speclet-learn` |
 | Mistral Vibe | `/speclet-learn` |
 | Command Code | `/speclet-learn` |
+| Antigravity CLI | `/speclet-learn` |
 
 Your agent presents each pending rule one at a time and asks: **Keep, Skip, or Defer?**
 
@@ -615,6 +666,7 @@ You can also use the slash command directly in your agent:
 | Claude Code | `/project:speclet-map` |
 | Mistral Vibe | `/speclet-map` |
 | Command Code | `/speclet-map` |
+| Antigravity CLI | `/speclet-map` |
 | Cursor | "Map the existing codebase following the speclet workflow" |
 
 ---
@@ -744,6 +796,34 @@ Anything you type after the command name is passed to the agent as context — s
 
 ---
 
+### Antigravity CLI
+
+After `speclet init`, the Antigravity CLI discovers the speclet workflow from the `.agents/skills/` directory. Each skill directory contains a `SKILL.md` file that registers as a custom slash command.
+
+Type `/` in the Antigravity CLI to see all speclet commands:
+
+| Command | Description |
+|---|---|
+| `/speclet-plan` | Plan a new feature with an architect/lead-engineer agent — proposes options, you decide, writes phased plan files |
+| `/speclet-map` | Full retroactive speclet setup — scans codebase, generates context, architecture, constitution, plans, and completed tasks |
+| `/speclet-constitution` | Fill in or update the project constitution |
+| `/speclet-tasks` | Generate tasks for all phases |
+| `/speclet-tasks 1` | Generate tasks for phase 1 |
+| `/speclet-clarify` | Clarify the full plan |
+| `/speclet-clarify 2` | Clarify a specific phase |
+| `/speclet-analyze` | Analyze tasks for gaps and conflicts, then fix |
+| `/speclet-analyze 1` | Analyze phase 1, then fix |
+| `/speclet-analyze "fix issues"` | Analyze, then update tasks and implement fixes |
+| `/speclet-implement 1` | Implement phase 1 |
+| `/speclet-implement "Phase 2"` | Implement by phase name |
+| `/speclet-learn` | Review auto-captured rules and merge them into the constitution |
+
+Anything you type after the command name is passed to the agent as context — so `/speclet-implement 2` tells the agent to implement phase 2.
+
+Skills follow the [Agent Skills](https://agentskills.io/specification) specification — the same format used by Mistral Vibe and Command Code.
+
+---
+
 ## CLI reference
 
 Every CLI command assembles a structured prompt and prints it to stdout. You paste it into your AI agent, or (for slash commands) the agent receives it automatically.
@@ -768,7 +848,7 @@ speclet init [plan] [options]
 
 | Flag | Short | Default | Description |
 |---|---|---|---|
-| `--agent <agent>` | `-a` | `all` | Which agent(s) to scaffold: `all`, `claude`, `copilot`, `cursor`, `vibe`, `commandcode` |
+| `--agent <agent>` | `-a` | `all` | Which agent(s) to scaffold: `all`, `claude`, `copilot`, `cursor`, `vibe`, `commandcode`, `antigravity` |
 
 **What it does:**
 
@@ -786,6 +866,7 @@ speclet init [plan] [options]
    - `cursor` → `.cursor/rules/speclet.mdc`
    - `vibe` → `.vibe/AGENTS.md`, `.vibe/skills/` (7 skills including `/speclet-learn`)
    - `commandcode` → `.commandcode/skills/` (7 skills including `/speclet-learn`)
+   - `antigravity` → `.agents/skills/` (8 skills including `/speclet-learn`)
 4. If `.speclet/` already exists, re-initializes (warns and continues — existing `context.md`, `constitution.md`, and `constitution.learned.md` are preserved)
 
 **Examples:**
