@@ -4,7 +4,7 @@ All notable changes to speclet are documented here.
 
 ---
 
-## Unreleased
+## 0.3.2 — 2026-07-19
 
 ### Added
 - **Antigravity CLI support** — `speclet init --agent antigravity` (also included in `--agent all`) scaffolds the 8 speclet workflow commands as [Agent Skills](https://agentskills.io/specification) into `.agents/skills/*/SKILL.md`, registering `/speclet-plan`, `/speclet-map`, `/speclet-constitution`, `/speclet-clarify`, `/speclet-analyze`, `/speclet-tasks`, `/speclet-implement`, and `/speclet-learn` as native slash commands in the Antigravity CLI.
